@@ -29,7 +29,7 @@ def create(config, data):
 
         names = doc.createElement("names")
         classifiedName = doc.createElement("classifiedName")
-        classifiedName.setAttribute("id", "knownas-" + id)
+        classifiedName.setAttribute("id", f"knownas-{id}")
         cnName = doc.createElement("name")
         cnFirst = doc.createElement("v3:firstname")
         cnLast = doc.createElement("v3:lastname")
@@ -47,24 +47,37 @@ def create(config, data):
         names.appendChild(classifiedName)
         person.appendChild(names)
 
+        titles = doc.createElement("titles")
+        title = doc.createElement("title")
+        title.setAttribute("id", f"title-{id}")
+        title_type = doc.createElement("typeClassification")
+        title_type_val = doc.createTextNode("designation")
+        title_value = doc.createElement("value")
+        title_value_text = doc.createElement("v3:text")
+        title_value_text.setAttribute("lang", "en")
+        title_value_text.setAttribute("country", "GB")
+        title_value_text_val = doc.createTextNode(obj["title"])
+        title_value_text.appendChild(title_value_text_val)
+        title_value.appendChild(title_value_text)
+        title_type.appendChild(title_type_val)
+        title.appendChild(title_type)
+        title.appendChild(title_value)
+        titles.appendChild(title)
+        person.appendChild(titles)
+
         gender = doc.createElement("gender")
         genderText = doc.createTextNode("unknown")
         gender.appendChild(genderText)
         person.appendChild(gender)
 
         esd = doc.createElement("employeeStartDate")
-        esdVal = doc.createTextNode(obj["start_date"])
+        esdVal = doc.createTextNode(obj["uni_start_date"])
         esd.appendChild(esdVal)
         person.appendChild(esd)
 
-        # organisaionAssociations is a big job...
-
-        # Turn start date into int for id use:
-        start_date_int = obj["start_date"].replace("-","")
-
         oa = doc.createElement("organisationAssociations")
 
-        soa_id = "-".join([id, obj["dept_code"], start_date_int])
+        soa_id = "-".join([id, obj["dept_code"], obj["div_start_date"]])
         soa = doc.createElement("staffOrganisationAssociation")
         soa.setAttribute("id", soa_id)
         soa_emails = doc.createElement("emails")
@@ -96,7 +109,7 @@ def create(config, data):
 
         period = doc.createElement("period")
         p_start = doc.createElement("v3:startDate")
-        p_start_text = doc.createTextNode(obj["start_date"])
+        p_start_text = doc.createTextNode(obj["div_start_date"])
         p_start.appendChild(p_start_text)
         period.appendChild(p_start)
         soa.appendChild(period)

@@ -13,66 +13,84 @@ def get(config):
     py_data = {
         "areas": config["uon_data"],
         "depts": {},
-        "persons": {},
-        "alerts": []
+        "persons": {}
     }
+
+    done = 0
 
     # Take the data line by line:
     for d in data:
-        if not (d["Area"] in py_data["areas"]):
-            py_data["areas"][d["Area"]] = {
-                "name": d["Area(T)"],
+        if d["AREA CODE"] not in py_data["areas"]:
+            py_data["areas"][d["AREA CODE"]] = {
+                "name": d["AREA NAME"],
                 "parent": config["uon_id"],
                 "type": "faculty",
                 "start_date": config["start_date"]
             }
-        if not (d["Department"] in py_data["depts"]):
-            py_data["depts"][d["Department"]] = {
-                "name": d["Department(T)"],
-                "parent": d["Area"],
+        if d["DIVISION CODE"] not in py_data["depts"]:
+            py_data["depts"][d["DIVISION CODE"]] = {
+                "name": d["DIVISION NAME"],
+                "parent": d["AREA CODE"],
                 "type": "department",
                 "start_date": config["start_date"]
             }
         # Flag to determine whether or not to include a staff member:
         process_staff = True
-        if (d["ResID"] in py_data["persons"]):
+        # Identify duplicate entries:
+        if d["ResID"] in py_data["persons"]:
             # If we have a duplicate staff entry, only process the data if
             # the "Main position" value is other than 0:
-            if(d["Main position"] == "0"):
+            if d["Main position"] == "0":
                 process_staff = False
             # Log the duplicate in the alerts section of the data output:
-            py_data["alerts"].append("Duplicate person entry: %(id)s (%(name)s)" % {
-                "id": d["ResID"],
-                "name": d["Known As"]
-            })
+            print(f"Skipping {d['ResId']} - duplicate entry.")
+        # No visiting profs etc.:
+        if d["POSITION"].startswith("Visiting") or d["DEPT_NAME"].startswith("Visting"):
+            process_staff = False
+            print(f"Skipping {d['ResID']} - visiting role.")
+        # Email required, some missing in new HR data
+        # More accurately, it's a single space:
+        if not d["EMAIL"] or d["EMAIL"].strip() == "":
+            process_staff = False
+            print(f"Skipping {d['ResID']} - no email address.")
         # Only process if data is wanted:
-        if (process_staff):
-            start_date = convert_date(d['Start Date'], config["start_date"])
-            # Split known-as value into first / last names
-            # As per the data supplied, the first name comes before the
-            # first space, so maxsplit=1 puts the rest of the string into
-            # the surname value:
-            [aka_first, aka_last] = d["Known As"].split(" ", maxsplit=1)
+        if process_staff:
+            done += 1
+            # Convert date, using first ten chars (omit time):
+            uni_start_date = convert_date(d['START_DATE'][0:10], config["start_date"])
+            div_start_date = convert_date(d['POSITION_DATE_FROM'][0:10], config["start_date"])
+
+            # New data only has 'familiar' for first name, no full 'known as'            
+            # Legacy code to split knownas value, if we have to roll back:
+            #[aka_first, aka_last] = d["Known As"].split(" ", maxsplit=1)
+
+            # Note: FTE in HR data uses many decimal places, here we trim it to two.
+            # But it's a string! So we just have to truncate to four characters...
+
             py_data["persons"][d["ResID"]] = {
-                "first_name": d["First name"],
-                "surname": d["Surname"],
-                "known_as_first": aka_first,
-                "known_as_last": aka_last,
-                "email": d["E-mail"].lower(),
-                "role": d["Position(T)"],
-                "start_date": start_date,
-                "area_code": d["Area"],
-                "area": d["Area(T)"],
-                "dept_code": d["Department"],
-                "dept": d["Department(T)"],
-                "fte": d["FTE"]
+                "first_name": d["FORENAMES"],
+                "surname": d["SURNAME"],
+                "known_as_first": d["FAMILIAR_NAME"],
+                "known_as_last": d["SURNAME"],
+                "title": d["TITLE"],
+                "email": d["EMAIL"].lower(),
+                "role": d["POSITION"],
+                "uni_start_date": uni_start_date,
+                "div_start_date": div_start_date,
+                "area_code": d["AREA CODE"],
+                "area": d["AREA NAME"],
+                "dept_code": d["DIVISION CODE"],
+                "dept": d["DIVISION NAME"],
+                "fte": d["FTE"][0:4]
             }
     # Write JSON output of data for verification / checking
     with open(config["json_source"], 'w') as f:
         f.write(json.dumps(py_data, indent=4))
 
+    print(f"Wrote {done} staff records.")
+
     # Return data as Python object:
-    return(py_data)
+    return py_data
 
 def convert_date(date, default):
     # Convert UON format (31/01/2018) to Pure format (2018-01-31):
@@ -80,7 +98,7 @@ def convert_date(date, default):
     date_parts.reverse()
     new_date = "-".join(date_parts)
     # Also clamp any dates earlier than the default start date:
-    if (strptime(new_date, "%Y-%m-%d") < strptime(default, "%Y-%m-%d")):
-        return(default)
+    if strptime(new_date, "%Y-%m-%d") < strptime(default, "%Y-%m-%d"):
+        return default
     else:
-        return(new_date)
+        return new_date
