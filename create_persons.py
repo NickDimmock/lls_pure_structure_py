@@ -6,8 +6,10 @@ def create(config, data):
 
     persons = doc.createElement("persons")
 
+
     for ns, uri in config["persons_namespaces"].items():
         persons.setAttributeNS("", ns, uri)
+
 
     doc.appendChild(persons)
     
@@ -149,6 +151,6 @@ def create(config, data):
         person.appendChild(person_ids)
 
         persons.appendChild(person)
-    
+
     with open(config["persons_xml"], "w", encoding="utf-8") as f:
         f.write(doc.toprettyxml())

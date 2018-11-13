@@ -67,20 +67,22 @@ def get(config):
             # Note: FTE in HR data uses many decimal places, here we trim it to two.
             # But it's a string! So we just have to truncate to four characters...
 
+            # Also, some name values have trailing spaces, so best to strip the lot.
+
             py_data["persons"][d["ResID"]] = {
-                "first_name": d["FORENAMES"],
-                "surname": d["SURNAME"],
-                "known_as_first": d["FAMILIAR_NAME"],
-                "known_as_last": d["SURNAME"],
-                "title": d["TITLE"],
-                "email": d["EMAIL"].lower(),
-                "role": d["POSITION"],
+                "first_name": d["FORENAMES"].strip(),
+                "surname": d["SURNAME"].strip(),
+                "known_as_first": d["FAMILIAR_NAME"].strip(),
+                "known_as_last": d["SURNAME"].strip(),
+                "title": d["TITLE"].strip(),
+                "email": d["EMAIL"].lower().strip(),
+                "role": d["POSITION"].strip(),
                 "uni_start_date": uni_start_date,
                 "div_start_date": div_start_date,
-                "area_code": d["AREA CODE"],
-                "area": d["AREA NAME"],
-                "dept_code": d["DIVISION CODE"],
-                "dept": d["DIVISION NAME"],
+                "area_code": d["AREA CODE"].strip(),
+                "area": d["AREA NAME"].strip(),
+                "dept_code": d["DIVISION CODE"].strip(),
+                "dept": d["DIVISION NAME"].strip(),
                 "fte": d["FTE"][0:4]
             }
     # Write JSON output of data for verification / checking

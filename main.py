@@ -1,5 +1,6 @@
 import create_orgs
 import create_persons
+import create_users
 import get_data
 import json
 
@@ -17,3 +18,6 @@ create_orgs.create(config=config, data=org_data)
 
 # Create person data:
 create_persons.create(config=config, data=data["persons"])
+
+# Create user data:
+create_users.create(config=config, data=data["persons"])

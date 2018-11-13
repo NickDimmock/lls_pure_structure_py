@@ -3,12 +3,17 @@
     "json_source": "data/data.json",
     "org_xml": "out/org.xml",
     "persons_xml": "out/persons.xml",
+    "users_xml": "out/users.xml",
     "org_namespaces": {
         "xmlns": "v1.organisation-sync.pure.atira.dk",
         "xmlns:v3": "v3.commons.pure.atira.dk" 
     },
     "persons_namespaces": {
         "xmlns": "v1.unified-person-sync.pure.atira.dk",
+        "xmlns:v3": "v3.commons.pure.atira.dk"
+    },
+    "users_namespaces": {
+        "xmlns": "v1.user-sync.pure.atira.dk",
         "xmlns:v3": "v3.commons.pure.atira.dk"
     },
     "start_date": "2005-09-01",
