@@ -1,48 +1,35 @@
-import xml.dom.minidom as dom
+import xml.etree.ElementTree as ET
+import xml.dom.minidom
 
 def create(config, data):
     
-    user_doc = dom.Document()
-
-    users = user_doc.createElement("users")
+    users = ET.Element("users")
 
     for ns, uri in config["users_namespaces"].items():
-        users.setAttributeNS("", ns, uri)
+        users.set(ns, uri)
 
-    user_doc.appendChild(users)
-    
     for id, obj in data.items():
 
-        user = user_doc.createElement("user")
-        user.setAttribute("id", f"user-{id}")
+        user = ET.SubElement(users, "user")
+        user.set("id", f"user-{id}")
 
-        user_username = user_doc.createElement("userName")
-        user_username_val = user_doc.createTextNode(id)
-        user_username.appendChild(user_username_val)
-        user.appendChild(user_username)
-        
-        user_email = user_doc.createElement("email")
-        user_email_val = user_doc.createTextNode(obj["email"])
-        user_email.appendChild(user_email_val)
-        user.appendChild(user_email)
+        # TODO: needs to be actual username (e.g. jmsmith) when available
+        username = ET.SubElement(user, "userName")
+        username.text = id
 
-        user_name = user_doc.createElement("name")
-        user_name_first = user_doc.createElement("v3:firstname")
-        user_name_last = user_doc.createElement("v3:lastname")
-        user_name_first_val = user_doc.createTextNode(obj["first_name"])
-        user_name_last_val = user_doc.createTextNode(obj["surname"])
-        user_name_first.appendChild(user_name_first_val)
-        user_name_last.appendChild(user_name_last_val)
-        user_name.appendChild(user_name_first)
-        user_name.appendChild(user_name_last)
-        user.appendChild(user_name)
+        email = ET.SubElement(user, "email")
+        email.text = obj["email"]
 
-        users.appendChild(user)
-
-    # Users file needs declaration attributes we can't set using minidom.
-    # (standalone = "yes")
-    # So we'll just write the header out manually and then add the users data.
-    with open(config["users_xml"], "w") as f:
-        f.write('<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n')
-        f.write(users.toprettyxml())
+        name = ET.SubElement(user, "name")
+        name_first = ET.SubElement(name, "v3:firstname")
+        name_first.text = obj["first_name"]
+        name_last = ET.SubElement(name, "v3:lastname")
+        name_last.text = obj["surname"]
+    
+    # Create XML string, then use minidom to generate a readable version
+    xml_string = ET.tostring(users, encoding="unicode")
+    new_xml = xml.dom.minidom.parseString(xml_string)
+    
+    with open(config["users_xml"], "w", encoding="utf-8") as f:
+        f.write(new_xml.toprettyxml())
     

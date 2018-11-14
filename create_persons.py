@@ -1,156 +1,103 @@
-import xml.dom.minidom as dom
+import xml.etree.ElementTree as ET
+import xml.dom.minidom
 
 def create(config, data):
     
-    doc = dom.Document()
+    #doc = dom.Document()
 
-    persons = doc.createElement("persons")
+    persons = ET.Element("persons")
 
 
     for ns, uri in config["persons_namespaces"].items():
-        persons.setAttributeNS("", ns, uri)
-
-
-    doc.appendChild(persons)
+        persons.set(ns, uri)
     
     for id, obj in data.items():
         
-        person = doc.createElement("person")
-        person.setAttribute("id", id)
+        person = ET.SubElement(persons, "person")
+        person.set("id", id)
         
-        name = doc.createElement("name")
-        first_name = doc.createElement("v3:firstname")
-        first_name_text = doc.createTextNode(obj["first_name"])
-        first_name.appendChild(first_name_text)
-        last_name = doc.createElement("v3:lastname")
-        last_name_text = doc.createTextNode(obj["surname"])
-        last_name.appendChild(last_name_text)
-        name.appendChild(first_name)
-        name.appendChild(last_name)
-        person.appendChild(name)
+        name = ET.SubElement(person, "name")
+        first_name = ET.SubElement(name, "v3:firstname")
+        first_name.text = obj["first_name"]
+        last_name = ET.SubElement(name, "v3:lastname")
+        last_name.text = obj["surname"]
 
-        names = doc.createElement("names")
-        classifiedName = doc.createElement("classifiedName")
-        classifiedName.setAttribute("id", f"knownas-{id}")
-        cnName = doc.createElement("name")
-        cnFirst = doc.createElement("v3:firstname")
-        cnLast = doc.createElement("v3:lastname")
-        cnFirstText = doc.createTextNode(obj["known_as_first"])
-        cnLastText = doc.createTextNode(obj["known_as_last"])
-        cnFirst.appendChild(cnFirstText)
-        cnLast.appendChild(cnLastText)
-        cnName.appendChild(cnFirst)
-        cnName.appendChild(cnLast)
-        tc = doc.createElement("typeClassification")
-        tc_text = doc.createTextNode("knownas")
-        tc.appendChild(tc_text)
-        classifiedName.appendChild(cnName)
-        classifiedName.appendChild(tc)
-        names.appendChild(classifiedName)
-        person.appendChild(names)
+        names = ET.SubElement(person, "names")
+        classified_name = ET.SubElement(names, "classifiedName")
+        classified_name.set("id", f"knownas-{id}")
+        cn_name = ET.SubElement(classified_name, "name")
+        cn_first = ET.SubElement(cn_name,"v3:firstname")
+        cn_first.text =obj["known_as_first"]
+        cn_last = ET.SubElement(cn_name,"v3:lastname")
+        cn_last.text = obj["known_as_last"]
 
-        titles = doc.createElement("titles")
-        title = doc.createElement("title")
-        title.setAttribute("id", f"title-{id}")
-        title_type = doc.createElement("typeClassification")
-        title_type_val = doc.createTextNode("designation")
-        title_value = doc.createElement("value")
-        title_value_text = doc.createElement("v3:text")
-        title_value_text.setAttribute("lang", "en")
-        title_value_text.setAttribute("country", "GB")
-        title_value_text_val = doc.createTextNode(obj["title"])
-        title_value_text.appendChild(title_value_text_val)
-        title_value.appendChild(title_value_text)
-        title_type.appendChild(title_type_val)
-        title.appendChild(title_type)
-        title.appendChild(title_value)
-        titles.appendChild(title)
-        person.appendChild(titles)
+        tc = ET.SubElement(classified_name, "typeClassification")
+        tc.text = "knownas"
+        
+        titles = ET.SubElement(person, "titles")
+        title = ET.SubElement(titles, "title")
+        title.set("id", f"title-{id}")
+        title_type = ET.SubElement(title, "typeClassification")
+        title_type.text = "designation"
+        title_value = ET.SubElement(title, "value")
+        title_value_text = ET.SubElement(title_value, "v3:text")
+        title_value_text.set("lang", "en")
+        title_value_text.set("country", "GB")
+        title_value_text.text = obj["title"]
 
-        gender = doc.createElement("gender")
-        genderText = doc.createTextNode("unknown")
-        gender.appendChild(genderText)
-        person.appendChild(gender)
+        gender = ET.SubElement(person, "gender")
+        gender.text = "unknown"
 
-        esd = doc.createElement("employeeStartDate")
-        esdVal = doc.createTextNode(obj["uni_start_date"])
-        esd.appendChild(esdVal)
-        person.appendChild(esd)
-
-        oa = doc.createElement("organisationAssociations")
-
+        emp_start = ET.SubElement(person, "employeeStartDate")
+        emp_start.text = obj["uni_start_date"]
+        
+        org_assoc = ET.SubElement(person, "organisationAssociations")
         soa_id = "-".join([id, obj["dept_code"], obj["div_start_date"]])
-        soa = doc.createElement("staffOrganisationAssociation")
-        soa.setAttribute("id", soa_id)
-        soa_emails = doc.createElement("emails")
-        soa_ce = doc.createElement("v3:classifiedEmail")
-        soa_ce_id = "-".join([id, obj["dept_code"], obj["email"]])
-        soa_ce.setAttribute("id", soa_ce_id)
-        soa_ce_class = doc.createElement("v3:classification")
-        soa_ce_class_text = doc.createTextNode("email")
-        soa_ce_class.appendChild(soa_ce_class_text)
-        soa_ce_val = doc.createElement("v3:value")
-        soa_ce_val_text = doc.createTextNode(obj["email"])
-        soa_ce_val.appendChild(soa_ce_val_text)
-        soa_ce.appendChild(soa_ce_class)
-        soa_ce.appendChild(soa_ce_val)
-        soa_emails.appendChild(soa_ce)
-        soa.appendChild(soa_emails)
+        soa = ET.SubElement(org_assoc, "staffOrganisationAssociation")
+        soa.set("id", soa_id)
+        
+        soa_emails = ET.SubElement(soa, "emails")
+        soa_email = ET.SubElement(soa_emails, "v3:classifiedEmail")
+        soa_email_id = "-".join([id, obj["dept_code"], obj["email"]])
+        soa_email.set("id", soa_email_id)
+        soa_email_class = ET.SubElement(soa_email, "v3:classification")
+        soa_email_class.text = "email"
+        soa_email_val = ET.SubElement(soa_email, "v3:value")
+        soa_email_val.text = obj["email"]
 
-        primary = doc.createElement("primaryAssociation")
-        primaryText = doc.createTextNode("true")
-        primary.appendChild(primaryText)
-        soa.appendChild(primary)
+        primary = ET.SubElement(soa, "primaryAssociation")
+        primary.text = "true"
 
-        org = doc.createElement("organisation")
-        org_id = doc.createElement("v3:source_id")
-        org_id_text = doc.createTextNode(obj["dept_code"])
-        org_id.appendChild(org_id_text)
-        org.appendChild(org_id)
-        soa.appendChild(org)
+        org = ET.SubElement(soa, "organisation")
+        org_id = ET.SubElement(org, "v3:source_id")
+        org_id.text = obj["dept_code"]
 
-        period = doc.createElement("period")
-        p_start = doc.createElement("v3:startDate")
-        p_start_text = doc.createTextNode(obj["div_start_date"])
-        p_start.appendChild(p_start_text)
-        period.appendChild(p_start)
-        soa.appendChild(period)
+        period = ET.SubElement(soa, "period")
+        p_start = ET.SubElement(period, "v3:startDate")
+        p_start.text = obj["div_start_date"]
 
-        staff_type = doc.createElement("staffType")
-        staff_type_text = doc.createTextNode("academic")
-        staff_type.appendChild(staff_type_text)
-        soa.appendChild(staff_type)
+        staff_type = ET.SubElement(soa, "staffType")
+        staff_type.text = "academic"
 
-        job = doc.createElement("jobDescription")
-        job_text = doc.createElement("v3:text")
-        job_text_text = doc.createTextNode(obj["role"])
-        job_text.appendChild(job_text_text)
-        job.appendChild(job_text)
-        soa.appendChild(job)
+        job = ET.SubElement(soa, "jobDescription")
+        job_text = ET.SubElement(job, "v3:text")
+        job_text.text = obj["role"]
 
-        fte = doc.createElement("fte")
-        fte_text = doc.createTextNode(obj["fte"])
-        fte.appendChild(fte_text)
-        soa.appendChild(fte)
+        fte = ET.SubElement(soa, "fte")
+        fte.text = obj["fte"]
 
-        oa.appendChild(soa)
+        user = ET.SubElement(person, "user")
+        user.set("id", f"user-{id}")
 
-        person.appendChild(oa)
+        person_ids = ET.SubElement(person, "personIds")
+        person_id = ET.SubElement(person_ids, "v3:id")
+        person_id.set("id", id)
+        person_id.set("type", "employee")
+        person_id.text = f"employee-{id}"
 
-        user = doc.createElement("user")
-        user.setAttribute("id", "user-" + id)
-        person.appendChild(user)
-
-        person_ids = doc.createElement("personIds")
-        person_ids_id = doc.createElement("v3:id")
-        person_ids_id.setAttribute("id", id)
-        person_ids_id.setAttribute("type", "employee")
-        person_ids_id_text = doc.createTextNode("employee-" + id)
-        person_ids_id.appendChild(person_ids_id_text)
-        person_ids.appendChild(person_ids_id)
-        person.appendChild(person_ids)
-
-        persons.appendChild(person)
-
+    # Create XML string, then use minidom to generate a readable version
+    xml_string = ET.tostring(persons, encoding="unicode")
+    new_xml = xml.dom.minidom.parseString(xml_string)
+    
     with open(config["persons_xml"], "w", encoding="utf-8") as f:
-        f.write(doc.toprettyxml())
+        f.write(new_xml.toprettyxml())
