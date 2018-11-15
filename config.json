@@ -1,5 +1,5 @@
 {
-    "csv_source": "data/data_new.csv",
+    "csv_source": "data/data.csv",
     "json_source": "data/data.json",
     "org_xml": "out/org.xml",
     "persons_xml": "out/persons.xml",
