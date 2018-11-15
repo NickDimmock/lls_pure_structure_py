@@ -13,9 +13,11 @@ def create(config, data):
         user = ET.SubElement(users, "user")
         user.set("id", f"user-{id}")
 
-        # TODO: needs to be actual username (e.g. jmsmith) when available
+        # We need a padded 8-digit version of our ID for the username value:
+        padded_id = id.rjust(8, "0")
+
         username = ET.SubElement(user, "userName")
-        username.text = id
+        username.text = padded_id
 
         email = ET.SubElement(user, "email")
         email.text = obj["email"]
