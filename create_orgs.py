@@ -1,7 +1,11 @@
 import xml.etree.ElementTree as ET
 import xml.dom.minidom
+import json
 
 def create(config, data):
+
+    # org_list creates a simple list of created orgs:
+    org_list = {}
 
     orgs = ET.Element("organisations")
 
@@ -10,6 +14,8 @@ def create(config, data):
 
     # Iterate through our organisational data set:
     for id, obj in data.items():
+
+        org_list[id] = obj["name"]
 
         org = ET.SubElement(orgs, "organisation")
 
@@ -40,3 +46,7 @@ def create(config, data):
     
     with open(config["org_xml"], "w", encoding="utf-8") as f:
         f.write(new_xml.toprettyxml())
+    
+    # Write org_list to json:
+    with open(config["org_list_json"], "w", encoding="utf-8") as f:
+        f.write(json.dumps(org_list, sort_keys=True, indent=4))

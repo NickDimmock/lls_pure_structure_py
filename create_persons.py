@@ -106,6 +106,6 @@ def create(config, data):
         f.write(new_xml.toprettyxml())
 
     # Write email_lookup file for Eprints export:
-    with open(config["email_lookup"], "w", encoding="utf-8") as f:
+    with open(config["email_lookup_json"], "w", encoding="utf-8") as f:
         f.write(json.dumps(email_lookup, sort_keys=True, indent=4))
     

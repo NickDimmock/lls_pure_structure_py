@@ -27,9 +27,9 @@ def get(config):
                 "type": "faculty",
                 "start_date": config["start_date"]
             }
-        if d["DIVISION CODE"] not in py_data["depts"]:
-            py_data["depts"][d["DIVISION CODE"]] = {
-                "name": d["DIVISION NAME"],
+        if d["DEPARTMENT"] not in py_data["depts"]:
+            py_data["depts"][d["DEPARTMENT"]] = {
+                "name": d["DEPT_NAME"],
                 "parent": d["AREA CODE"],
                 "type": "department",
                 "start_date": config["start_date"]
