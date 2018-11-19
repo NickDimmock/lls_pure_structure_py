@@ -14,7 +14,7 @@ def create(config, data):
     
     for id, obj in data.items():
 
-        email_lookup[id] = obj["email"]
+        email_lookup[obj["email"]] = id
         
         person = ET.SubElement(persons, "person")
         person.set("id", id)
