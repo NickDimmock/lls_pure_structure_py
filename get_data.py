@@ -81,8 +81,8 @@ def get(config):
                 "div_start_date": div_start_date,
                 "area_code": d["AREA CODE"].strip(),
                 "area": d["AREA NAME"].strip(),
-                "dept_code": d["DIVISION CODE"].strip(),
-                "dept": d["DIVISION NAME"].strip(),
+                "dept_code": d["DEPARTMENT"].strip(),
+                "dept": d["DEPT_NAME"].strip(),
                 "fte": d["FTE"][0:4]
             }
     # Write JSON output of data for verification / checking
