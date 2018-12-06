@@ -20,20 +20,7 @@ def get(config):
 
     # Take the data line by line:
     for d in data:
-        if d["AREA CODE"] not in py_data["areas"]:
-            py_data["areas"][d["AREA CODE"]] = {
-                "name": d["AREA NAME"],
-                "parent": config["uon_id"],
-                "type": "faculty",
-                "start_date": config["start_date"]
-            }
-        if d["DEPARTMENT"] not in py_data["depts"]:
-            py_data["depts"][d["DEPARTMENT"]] = {
-                "name": d["DEPT_NAME"],
-                "parent": d["AREA CODE"],
-                "type": "department",
-                "start_date": config["start_date"]
-            }
+
         # Flag to determine whether or not to include a staff member:
         process_staff = True
         # Identify duplicate entries:
@@ -56,6 +43,24 @@ def get(config):
         # Only process if data is wanted:
         if process_staff:
             done += 1
+
+            # If we get here, we want to add the dept and area codes:
+
+            if d["AREA CODE"] not in py_data["areas"]:
+                py_data["areas"][d["AREA CODE"]] = {
+                    "name": d["AREA NAME"],
+                    "parent": config["uon_id"],
+                    "type": "faculty",
+                    "start_date": config["start_date"]
+                }
+            if d["DEPARTMENT"] not in py_data["depts"]:
+                py_data["depts"][d["DEPARTMENT"]] = {
+                    "name": d["DEPT_NAME"],
+                    "parent": d["AREA CODE"],
+                    "type": "department",
+                    "start_date": config["start_date"]
+                }
+
             # Convert date, using first ten chars (omit time):
             uni_start_date = convert_date(d['START_DATE'][0:10], config["start_date"])
             div_start_date = convert_date(d['POSITION_DATE_FROM'][0:10], config["start_date"])
@@ -85,11 +90,15 @@ def get(config):
                 "dept": d["DEPT_NAME"].strip(),
                 "fte": d["FTE"][0:4]
             }
+
     # Write JSON output of data for verification / checking
     with open(config["json_source"], 'w') as f:
         f.write(json.dumps(py_data, indent=4))
 
-    print(f"Wrote {done} staff records.")
+    dept_total = len(py_data["areas"])
+    area_total = len(py_data["depts"])
+
+    print(f"Wrote {done} staff records, {dept_total} departments and {area_total} areas.")
 
     # Return data as Python object:
     return py_data
